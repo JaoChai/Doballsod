@@ -35,7 +35,8 @@
             </li>
              <li>
                 <a href="<?php echo site_url('backend/viewch');?>"></i>จัดการช่องทีวี</a>
-            </li> 
+            </li>
+            <li><a href="<?php echo site_url('backend/viewimg');?>"></i>จัดการรูปภาพ</a></li>
         </ul>
     </div>
     <!-- /.navbar-collapse -->

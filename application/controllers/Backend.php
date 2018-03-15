@@ -2,72 +2,73 @@
 //session_start();
 class Backend extends CI_Controller {
 	public function __construct() {
-			 parent::__construct();
+		parent::__construct();
 		if ( ! $this->session->userdata('logged_in'))
-{
- // Allow some methods?
- $allowed = array(
-		 'viewleague',
-		 'viewtablefootball',
-		 'viewch',
-		 'updateleague',
-		 'updatefootball',
-		 'updatech'
- );
- if ( in_array($this->router->fetch_method(), $allowed))
- {
-		 redirect('backend/index');
- }
-}
-	$this->load->model('league_model', 'league');
-	$this->load->model('channel_model', 'ch');
-	$this->load->model('football_model', 'football');
+		{
+			// Allow some methods?
+			$allowed = array(
+				'viewleague',
+				'viewtablefootball',
+				'viewch',
+				'updateleague',
+				'updatefootball',
+				'updatech'
+			);
+			if ( in_array($this->router->fetch_method(), $allowed))
+			{
+				redirect('backend/index');
+			}
+		}
+		$this->load->model('league_model', 'league');
+		$this->load->model('channel_model', 'ch');
+		$this->load->model('football_model', 'football');
+		$this->load->model('Img_model', 'img');
 	}
 	public function index()
-  {
-    $this->load->view('layoutbackend/header');
-    $this->load->view('backend/index');
-    $this->load->view('layoutbackend/footer');
+	{
+		$this->load->view('layoutbackend/header');
+		$this->load->view('backend/index');
+		$this->load->view('layoutbackend/footer');
 	}
 
 	public function login(){
 		$this->load->model("login_model", "login_db");
 
-	$this->form_validation->set_rules('username', 'Username', 'required|trim');
-	$this->form_validation->set_rules('password', 'Password', 'required|trim');
-	if($this->form_validation->run() == FALSE){
-		if(isset($this->session->userdata['logged_in'])){
-			redirect('backend/viewleague');
-		}else{
-			$this->session->set_flashdata('error_mess', '<p class="text-danger"> Username or Password is Required. </p>');
-			redirect('backend/index');
-		}
-	}else{
-		$data = array(
-			'username' => $this->input->post('username'),
-			'password' => $this->input->post('password')
-		);
-
-		$result = $this->login_db->login($data);
-		//login Successfully
-		if($result == TRUE){
-			$username = $this->input->post('username');
-			$result = $this->login_db->get_data($username);
-			if($result != FALSE){
-				$session_data = array(
-					'id' => $result[0]->admin_id,
-					'username' => $result[0]->admin_username
-				);
-				//Add user data in session
-				$this->session->set_userdata('logged_in', $session_data);
+		$this->form_validation->set_rules('username', 'Username', 'required|trim');
+		$this->form_validation->set_rules('password', 'Password', 'required|trim');
+		if($this->form_validation->run() == FALSE){
+			if(isset($this->session->userdata['logged_in'])){
 				redirect('backend/viewleague');
+			}else{
+				$this->session->set_flashdata('error_mess', '<p class="text-danger"> Username or Password is Required. </p>');
+				redirect('backend/index');
 			}
 		}else{
-			$this->session->set_flashdata('error_mess',  'Invalid login credentials.');
-			redirect('backend/index');
+			$data = array(
+				'username' => $this->input->post('username'),
+				'password' => $this->input->post('password')
+			);
+
+			$result = $this->login_db->login($data);
+			//login Successfully
+			if($result == TRUE){
+				$username = $this->input->post('username');
+				$result = $this->login_db->get_data($username);
+				if($result != FALSE){
+					$session_data = array(
+						'id' => $result[0]->admin_id,
+						'username' => $result[0]->admin_username
+					);
+					//Add user data in session
+					$this->session->set_userdata('logged_in', $session_data);
+					redirect('backend/viewleague');
+				}
+			}else{
+				$this->session->set_flashdata('error_mess',  'Invalid login credentials.');
+				redirect('backend/index');
+			}
 		}
 	}
-}
 
 	public function logout(){
 		$sess_array = array(
@@ -77,13 +78,13 @@ class Backend extends CI_Controller {
 		$this->session->unset_userdata('logged_in', $sess_array);
 		redirect('backend/index');
 	}
-  /* View Backend */
-  public function viewmanage(){
-    $this->load->view('layoutbackend/header');
-    $this->load->view('layoutbackend/navbar');
-    $this->load->view('backend/manage');
-    $this->load->view('layoutbackend/footer');
-  }
+	/* View Backend */
+	public function viewmanage(){
+		$this->load->view('layoutbackend/header');
+		$this->load->view('layoutbackend/navbar');
+		$this->load->view('backend/manage');
+		$this->load->view('layoutbackend/footer');
+	}
 
 	public function viewleague(){
 		$data['result'] = $this->league->getall();
@@ -111,25 +112,49 @@ class Backend extends CI_Controller {
 		$this->load->view('layoutbackend/footer');
 	}
 
-  /* Crud viewleague */
+	public function viewimg()
+	{
+		$data['img'] = $this->img->getall();
+		$this->load->view('layoutbackend/header');
+		$this->load->view('layoutbackend/navbar');
+		$this->load->view('backend/img', $data);
+		$this->load->view('layoutbackend/footer');
+	}
+
+	/* Crud viewleague */
 
 	public function createleague(){
-	$this->form_validation->set_rules('league', '<b>ลีก</b>', 'required');
-	$this->form_validation->set_message('required', 'กรุณากรอก %s');
-	if($this->form_validation->run() == FALSE){
-		$this->session->set_flashdata('alert', '<div class="alert alert-danger">' . validation_errors() . '</div>');
-		redirect('backend/viewleague');
-	}else{
-		date_default_timezone_set('Asia/Bangkok');
-		$data = array(
-			'lea_name' => $this->input->post('league'),
-			'lea_date' => Date('Y-m-d H:i:s')
-		);
-		$this->league->insert($data);
-		$this->session->set_flashdata('alert', '<div class="alert alert-success"> Insert League Successfully </div>');
-		redirect('backend/viewleague');
+		$this->form_validation->set_rules('league', '<b>ลีก</b>', 'required');
+		$this->form_validation->set_message('required', 'กรุณากรอก %s');
+		if($this->form_validation->run() == FALSE){
+			$this->session->set_flashdata('alert', '<div class="alert alert-danger">' . validation_errors() . '</div>');
+			redirect('backend/viewleague');
+		}else{
+			date_default_timezone_set('Asia/Bangkok');
+			$data = array(
+				'lea_name' => $this->input->post('league'),
+				'lea_date' => Date('Y-m-d H:i:s')
+			);
+			$this->league->insert($data);
+			$this->session->set_flashdata('alert', '<div class="alert alert-success"> Insert League Successfully </div>');
+			redirect('backend/viewleague');
+		}
 	}
-}
+
+	public function create_img()
+	{
+		$data = array(
+			"ban_on" => $this->input->post('banner1'),
+			"ban_left" => $this->input->post('banner2'),
+			"ban_right" => $this->input->post('banner3'),
+			"ban_video" => $this->input->post('banner4'),
+			"ban_bottom" => $this->input->post('banner5')
+		);
+
+		$this->img->update($data);
+		$this->session->set_flashdata('alert', '<div class="alert alert-success"> Update IMG Successfully </div>');
+		redirect('backend/viewimg');
+	}
 
 	public function updateleague($id){
 		$this->form_validation->set_rules('league', '<b>ลีก</b>', 'required');

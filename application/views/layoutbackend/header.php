@@ -9,6 +9,6 @@
     <link href="<?php echo base_url('assets/css/bootstrap.min.css'); ?>" rel="stylesheet">
     <link href="<?php echo base_url('assets/css/sb-admin.css');?>" rel="stylesheet">
     <link href="<?php echo base_url('assets/css/signin.css');?>" rel="stylesheet">
-
+    <script src="https://cdn.ckeditor.com/4.9.0/standard/ckeditor.js"></script>
   </head>
   <body>
